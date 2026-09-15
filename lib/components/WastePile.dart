@@ -1,12 +1,32 @@
 import 'package:flame/components.dart';
 import '../Solitaire.dart';
+import 'Pile.dart';
 import 'card.dart';
 
 /*
     * PositionComponent is a component that has a position and size
     * The pile of cards that are skipped and let back in after the stock is gone
 */
-class WastePile extends PositionComponent{
+class WastePile extends PositionComponent implements Pile{
+  @override
+  bool canMoveCard(Card card) => _cards.isNotEmpty && card == _cards.last;
+
+  @override
+  bool canAcceptCard(Card card) => false;
+
+  @override
+  void removeCard(Card card) {
+    assert(canMoveCard(card));
+    _cards.removeLast();
+    _fanOutTopCards();
+  }//end of removeCard
+
+  @override
+  void returnCard(Card card) {
+    card.priority = _cards.indexOf(card);
+    _fanOutTopCards();
+  }//end of returnCard
+
   @override
   bool get debugMode => true; //turned on debug mode to view
 
@@ -21,6 +41,7 @@ class WastePile extends PositionComponent{
     assert(card.isFaceUp);
     card.position = position;
     card.priority = _cards.length;
+    card.pile = this;
     _cards.add(card);
   }//end of acquireCard
 

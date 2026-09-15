@@ -1,14 +1,37 @@
 import 'dart:ui';
-
 import 'package:flame/components.dart';
 import '../Solitaire.dart';
 import '../suit.dart';
+import 'Pile.dart';
 import 'card.dart';
 
 /*
     * PositionComponent is a component that has a position and size
 */
-class FoundationPile extends PositionComponent{
+class FoundationPile extends PositionComponent implements Pile{
+  @override
+  bool canMoveCard(Card card) => _cards.isNotEmpty && card == _cards.last;
+
+  @override
+  bool canAcceptCard(Card card) {
+    final topCardRank = _cards.isEmpty ? 0 : _cards.last.rank.value;
+    return card.suit == suit &&
+        card.rank.value == topCardRank + 1 &&
+        card.attachedCards.isEmpty;
+  }//end of canAcceptCard
+
+  @override
+  void removeCard(Card card) {
+    assert(canMoveCard(card));
+    _cards.removeLast();
+  }//end of removeCard
+
+  @override
+  void returnCard(Card card) {
+    card.position = position;
+    card.priority = _cards.indexOf(card);
+  }//end of returnCard
+
   @override
   bool get debugMode => true; //turned on debug mode to view
   final Suit suit; //what kind of card is it
@@ -24,6 +47,7 @@ class FoundationPile extends PositionComponent{
     assert(card.isFaceUp);
     card.position = position;
     card.priority = _cards.length;
+    card.pile = this;
     _cards.add(card);
   }//end of acquireCard
 

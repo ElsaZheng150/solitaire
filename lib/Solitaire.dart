@@ -1,10 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
-
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/flame.dart';
-
 import 'components/card.dart';
 import 'components/FoundationPile.dart';
 import 'components/TableauPile.dart';
@@ -32,29 +30,25 @@ class Solitaire extends FlameGame{
   Future<void> onLoad() async{
     await Flame.images.load('klondike-sprites.png'); //wait for image/resource to be loaded before starting game
     //create components to set size and positions in the world calculated by arithmetic
-    final stock = StockPile() //creates pile of cards you have
-      ..size = cardSize
-      ..position = Vector2(cardGap, cardGap);
-    final waste = WastePile() //waste pile
-      ..size = cardSize
-      ..position = Vector2(cardWidth + 2 * cardGap, cardGap);
-    final foundations = List.generate( //setting up 4 piles you have to sort the cards into
+    final stock = StockPile(position: Vector2(cardGap, cardGap)); //creates pile of cards you have
+    final waste = WastePile(position: Vector2(cardWidth + 2 * cardGap, cardGap));
+    final foundations = List.generate(
       4,
-          (i) => FoundationPile();
-        ..size = cardSize
-        ..position =
-        Vector2((i + 3) * (cardWidth + cardGap) + cardGap, cardGap),
+          (i) => FoundationPile(
+        i,
+        position: Vector2((i + 3) * (cardWidth + cardGap) + cardGap, cardGap),
+      ),
     );
-    final piles = List.generate( //the 7 piles you place cards in Solitaire
+    final piles = List.generate(
       7,
-          (i) => TableauPile()
-        ..size = cardSize
-        ..position = Vector2(
+          (i) => TableauPile(
+        position: Vector2(
           cardGap + i * (cardWidth + cardGap),
           cardHeight + 2 * cardGap,
         ),
+      ),
     );
-
+    
     //add components into world (root of the game board)
     world.add(stock);
     world.add(waste);

@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import '../Solitaire.dart';
+import 'Pile.dart';
 import 'card.dart';
 import 'WastePile.dart';
 
@@ -8,7 +9,19 @@ import 'WastePile.dart';
     * PositionComponent is a component that has a position and size
     * The deck of cards that can be played
 */
-class StockPile extends PositionComponent with TapCallbacks{
+class StockPile extends PositionComponent with TapCallbacks implements Pile{
+  @override
+  bool canMoveCard(Card card) => false;
+
+  @override
+  bool canAcceptCard(Card card) => false;
+
+  @override
+  void removeCard(Card card) => throw StateError('cannot remove cards from here');
+
+  @override
+  void returnCard(Card card) => throw StateError('cannot remove cards from here');
+
   @override
   bool get debugMode => true; //turned on debug mode to view
 
@@ -24,6 +37,7 @@ class StockPile extends PositionComponent with TapCallbacks{
     assert(!card.isFaceUp);
     card.position = position;
     card.priority = _cards.length;
+    card.pile = this;
     _cards.add(card);
   }//end of acquireCard
 

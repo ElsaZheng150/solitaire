@@ -1,18 +1,24 @@
 import 'dart:math';
 import 'dart:ui';
-
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:solitaire/Solitaire.dart';
 import '../rank.dart';
 import '../suit.dart';
-import '../Solitaire.dart';
+import 'Pile.dart';
+import 'TableauPile.dart';
 
-class Card extends PositionComponent{
+class Card extends PositionComponent with DragCallbacks{
   //card details
   final Rank rank;
   final Suit suit;
   bool _faceUp;
-
+  Pile? pile;
+  final List<Card> attachedCards = []; //cards the move in a stack
+  //public accessors and mutators for _faceUp
+  bool get isFaceUp => _faceUp;
+  bool get isFaceDown => !_faceUp;
+  void flip() => _faceUp = !_faceUp; //flip the card
   /*
     * Constructor
     * takes integer rank and suit
@@ -23,11 +29,6 @@ class Card extends PositionComponent{
         suit = Suit.fromInt(intSuit),
         _faceUp = false,
         super(size: Solitaire.cardSize);
-
-  //public accessors and mutators for _faceUp
-  bool get isFaceUp => _faceUp;
-  bool get isFaceDown => !_faceUp;
-  void flip() => _faceUp = !_faceUp; //flip the card
 
   //creates a board the game rests on
   @override
@@ -206,6 +207,63 @@ class Card extends PositionComponent{
       canvas.restore();
     }//end of if
   }//end of _drawSprite
+
+  //methods to allow user to drag and drop the cards
+  @override
+  void onDragStart(DragStartEvent event) {
+    if (pile?.canMoveCard(this) ?? false) {
+      super.onDragStart(event);
+      priority = 100;
+      if (pile is TableauPile) {
+        attachedCards.clear();
+        final extraCards = (pile! as TableauPile).cardsOnTop(this);
+        for (final card in extraCards) {
+          card.priority = attachedCards.length + 101;
+          attachedCards.add(card);
+        }//end of for
+      }//end of if
+    }//end of if
+  }//end of onDragStart;
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    if (!isDragged) {
+      return;
+    }//end of if
+    final delta = event.localDelta;
+    position.add(delta);
+    attachedCards.forEach((card) => card.position.add(delta));
+  }//end of onDragUpdate
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    if (!isDragged) {
+      return;
+    }//end of if
+    super.onDragEnd(event);
+    final dropPiles = parent!
+        .componentsAtPoint(position + size / 2)
+        .whereType<Pile>()
+        .toList();
+    if (dropPiles.isNotEmpty) {
+      if (dropPiles.first.canAcceptCard(this)) {
+        pile!.removeCard(this);
+        dropPiles.first.acquireCard(this);
+        if (attachedCards.isNotEmpty) {
+          attachedCards.forEach((card) => dropPiles.first.acquireCard(card));
+          attachedCards.clear();
+        }//end of if
+        return;
+      }//end of if
+    }//end of if
+
+    pile!.returnCard(this);
+
+    if (attachedCards.isNotEmpty) {
+      attachedCards.forEach((card) => pile!.returnCard(card));
+      attachedCards.clear();
+    }//end of if
+  }//end of onDragEnd
 
   //for debugging
   @override
