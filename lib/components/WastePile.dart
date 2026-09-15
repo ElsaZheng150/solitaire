@@ -7,7 +7,7 @@ import 'card.dart';
     * PositionComponent is a component that has a position and size
     * The pile of cards that are skipped and let back in after the stock is gone
 */
-class WastePile extends PositionComponent implements Pile{
+class WastePile extends PositionComponent with HasGameReference<Solitaire> implements Pile {
   @override
   bool canMoveCard(Card card) => _cards.isNotEmpty && card == _cards.last;
 
@@ -30,6 +30,23 @@ class WastePile extends PositionComponent implements Pile{
   @override
   bool get debugMode => true; //turned on debug mode to view
 
+  void _fanOutTopCards() {
+    if (game.solitaireDraw == 1) {   // No fan-out in Klondike Draw 1.
+      return;
+    }//end of if
+    final n = _cards.length;
+    for (var i = 0; i < n; i++) {
+      _cards[i].position = position;
+    }//end of for loop
+    if (n == 2) {
+      _cards[1].position.add(_fanOffset);
+    }//end of if
+    else if (n >= 3) {
+      _cards[n - 2].position.add(_fanOffset);
+      _cards[n - 1].position.addScaled(_fanOffset, 2);
+    }//end of else if
+  }//end of _fanOutTopCards
+
   //constructor
   WastePile({super.position}) : super(size: Solitaire.cardSize);
 
@@ -44,21 +61,6 @@ class WastePile extends PositionComponent implements Pile{
     card.pile = this;
     _cards.add(card);
   }//end of acquireCard
-
-  //must flip three cards at a time
-  void _fanOutTopCards() {
-    final n = _cards.length;
-    for (var i = 0; i < n; i++) {
-      _cards[i].position = position;
-    }//end of for loop
-    if (n == 2) {
-      _cards[1].position.add(_fanOffset);
-    }//end of if
-    else if (n >= 3) {
-      _cards[n - 2].position.add(_fanOffset);
-      _cards[n - 1].position.addScaled(_fanOffset, 2);
-    }//end of else if
-  }//end of _fanOutTopCards
 
   //empty pile so cards can be played again
   List<Card> removeAllCards() {

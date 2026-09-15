@@ -60,25 +60,4 @@ class StockPile extends PositionComponent with TapCallbacks, HasGameReference<So
     card.pile = this;
     _cards.add(card);
   }//end of acquireCard
-
-  //first three cards are flipped and thrown away according to the rules
-  @override
-  void onTapUp(TapUpEvent event) {
-    final wastePile = parent!.firstChild<WastePile>()!;
-    if (_cards.isEmpty) {
-      wastePile.removeAllCards().reversed.forEach((card) {
-        card.flip();
-        acquireCard(card);
-      });
-    } //end of if
-    else {
-      for (var i = 0; i < 3; i++) {
-        if (_cards.isNotEmpty) {
-          final card = _cards.removeLast();
-          card.flip();
-          wastePile.acquireCard(card);
-        }//end of if
-      }//end of for loop
-    }//end of else
-  }//end of onTapUp
 }//end of Stock class

@@ -19,6 +19,8 @@ class Solitaire extends FlameGame{
     const Rect.fromLTWH(0, 0, cardWidth, cardHeight),
     const Radius.circular(cardRadius),
   );
+  // final int solitaireDraw = 3; //flip 3 cards at a time
+  final int solitaireDraw = 1; //flip 1 card at a time
 
   @override
   /*
