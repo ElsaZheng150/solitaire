@@ -9,16 +9,6 @@ import 'Pile.dart';
 import 'TableauPile.dart';
 
 class Card extends PositionComponent with DragCallbacks{
-  //card details
-  final Rank rank;
-  final Suit suit;
-  bool _faceUp;
-  Pile? pile;
-  final List<Card> attachedCards = []; //cards the move in a stack
-  //public accessors and mutators for _faceUp
-  bool get isFaceUp => _faceUp;
-  bool get isFaceDown => !_faceUp;
-  void flip() => _faceUp = !_faceUp; //flip the card
   /*
     * Constructor
     * takes integer rank and suit
@@ -30,6 +20,22 @@ class Card extends PositionComponent with DragCallbacks{
         _faceUp = false,
         super(size: Solitaire.cardSize);
 
+  //card details
+  final Rank rank;
+  final Suit suit;
+  Pile? pile;
+  bool _faceUp = false;
+  bool _isDragging = false;
+  final List<Card> attachedCards = []; //cards the move in a stack
+  //public accessors and mutators for _faceUp
+  bool get isFaceUp => _faceUp;
+  bool get isFaceDown => !_faceUp;
+  void flip() => _faceUp = !_faceUp; //flip the card
+
+  //for debugging
+  @override
+  String toString() => rank.label + suit.label; //e.g., "Queen of Hearts or 10 of diamonds"
+
   //creates a board the game rests on
   @override
   void render(Canvas canvas) {
@@ -40,6 +46,58 @@ class Card extends PositionComponent with DragCallbacks{
       _renderBack(canvas);
     }//end of else
   }//end of render
+
+  //helper methods for _renderBack
+  static final Paint backBackgroundPaint = Paint()
+    ..color = const Color(0xff380c02);
+  static final Paint backBorderPaint1 = Paint()
+    ..color = const Color(0xffdbaf58)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 10;
+  static final Paint backBorderPaint2 = Paint()
+    ..color = const Color(0x5CEF971B)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 35;
+  static final RRect cardRRect = RRect.fromRectAndRadius(
+    Solitaire.cardSize.toRect(),
+    const Radius.circular(Solitaire.cardRadius),
+  );
+  static final RRect backRRectInner = cardRRect.deflate(40);
+  static final Sprite flameSprite = solitaireSprite(1367, 6, 357, 501);
+
+  //renders the back of the card with the design
+  void _renderBack(Canvas canvas) {
+    canvas.drawRRect(cardRRect, backBackgroundPaint);
+    canvas.drawRRect(cardRRect, backBorderPaint1);
+    canvas.drawRRect(backRRectInner, backBorderPaint2);
+    flameSprite.render(canvas, position: size / 2, anchor: Anchor.center);
+  }//end of _renderBack
+
+  //helper for _renderFront
+  static final Paint frontBackgroundPaint = Paint()
+    ..color = const Color(0xff000000);
+  static final Paint redBorderPaint = Paint()
+    ..color = const Color(0xffece8a3)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 10;
+  static final Paint blackBorderPaint = Paint()
+    ..color = const Color(0xff7ab2e8)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 10;
+  static final Sprite redJack = solitaireSprite(81, 565, 562, 488);
+  static final Sprite redQueen = solitaireSprite(717, 541, 486, 515);
+  static final Sprite redKing = solitaireSprite(1305, 532, 407, 549);
+  static final blueFilter = Paint()
+    ..colorFilter = const ColorFilter.mode(
+      Color(0x880d8bff),
+      BlendMode.srcATop,
+    );
+  static final Sprite blackJack = solitaireSprite(81, 565, 562, 488)
+    ..paint = blueFilter;
+  static final Sprite blackQueen = solitaireSprite(717, 541, 486, 515)
+    ..paint = blueFilter;
+  static final Sprite blackKing = solitaireSprite(1305, 532, 407, 549)
+    ..paint = blueFilter;
 
   //renders the front of the card with the details
   void _renderFront(Canvas canvas) {
@@ -131,58 +189,6 @@ class Card extends PositionComponent with DragCallbacks{
     }
   }//end of _renderFront
 
-  //renders the back of the card with the design
-  void _renderBack(Canvas canvas) {
-    canvas.drawRRect(cardRRect, backBackgroundPaint);
-    canvas.drawRRect(cardRRect, backBorderPaint1);
-    canvas.drawRRect(backRRectInner, backBorderPaint2);
-    flameSprite.render(canvas, position: size / 2, anchor: Anchor.center);
-  }//end of _renderBack
-
-  //helper methods for _renderBack
-  static final Paint backBackgroundPaint = Paint()
-    ..color = const Color(0xff380c02);
-  static final Paint backBorderPaint1 = Paint()
-    ..color = const Color(0xffdbaf58)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 10;
-  static final Paint backBorderPaint2 = Paint()
-    ..color = const Color(0x5CEF971B)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 35;
-  static final RRect cardRRect = RRect.fromRectAndRadius(
-    Solitaire.cardSize.toRect(),
-    const Radius.circular(Solitaire.cardRadius),
-  );
-  static final RRect backRRectInner = cardRRect.deflate(40);
-  static final Sprite flameSprite = solitaireSprite(1367, 6, 357, 501);
-
-  //helper for _renderFront
-  static final Paint frontBackgroundPaint = Paint()
-    ..color = const Color(0xff000000);
-  static final Paint redBorderPaint = Paint()
-    ..color = const Color(0xffece8a3)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 10;
-  static final Paint blackBorderPaint = Paint()
-    ..color = const Color(0xff7ab2e8)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 10;
-  static final Sprite redJack = solitaireSprite(81, 565, 562, 488);
-  static final Sprite redQueen = solitaireSprite(717, 541, 486, 515);
-  static final Sprite redKing = solitaireSprite(1305, 532, 407, 549);
-  static final blueFilter = Paint()
-    ..colorFilter = const ColorFilter.mode(
-      Color(0x880d8bff),
-      BlendMode.srcATop,
-    );
-  static final Sprite blackJack = solitaireSprite(81, 565, 562, 488)
-    ..paint = blueFilter;
-  static final Sprite blackQueen = solitaireSprite(717, 541, 486, 515)
-    ..paint = blueFilter;
-  static final Sprite blackKing = solitaireSprite(1305, 532, 407, 549)
-    ..paint = blueFilter;
-
   void _drawSprite(
       Canvas canvas,
       Sprite sprite,
@@ -227,7 +233,7 @@ class Card extends PositionComponent with DragCallbacks{
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
-    if (!isDragged) {
+    if (!_isDragging) {
       return;
     }//end of if
     final delta = event.localDelta;
@@ -237,7 +243,7 @@ class Card extends PositionComponent with DragCallbacks{
 
   @override
   void onDragEnd(DragEndEvent event) {
-    if (!isDragged) {
+    if (!_isDragging) {
       return;
     }//end of if
     super.onDragEnd(event);
@@ -264,8 +270,4 @@ class Card extends PositionComponent with DragCallbacks{
       attachedCards.clear();
     }//end of if
   }//end of onDragEnd
-
-  //for debugging
-  @override
-  String toString() => rank.label + suit.label; //e.g., "Queen of Hearts or 10 of diamonds"
 }//end of Card class

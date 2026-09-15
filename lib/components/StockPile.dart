@@ -9,7 +9,7 @@ import 'WastePile.dart';
     * PositionComponent is a component that has a position and size
     * The deck of cards that can be played
 */
-class StockPile extends PositionComponent with TapCallbacks implements Pile{
+class StockPile extends PositionComponent with TapCallbacks, HasGameReference<Solitaire> implements Pile{
   @override
   bool canMoveCard(Card card) => false;
 
@@ -24,6 +24,26 @@ class StockPile extends PositionComponent with TapCallbacks implements Pile{
 
   @override
   bool get debugMode => true; //turned on debug mode to view
+  
+  @override
+  void onTapUp(TapUpEvent event) {
+    final wastePile = parent!.firstChild<WastePile>()!;
+    if (_cards.isEmpty) {
+      wastePile.removeAllCards().reversed.forEach((card) {
+        card.flip();
+        acquireCard(card);
+      });
+    }//end of if
+    else {
+      for (var i = 0; i < game.solitaireDraw ; i++) {
+        if (_cards.isNotEmpty) {
+          final card = _cards.removeLast();
+          card.flip();
+          wastePile.acquireCard(card);
+        }//end of if
+      }//end of for loop
+    }//end of else
+  }//end of onTapUp
 
   //constructor
   StockPile({super.position}) : super(size: Solitaire.cardSize);
