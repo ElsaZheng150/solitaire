@@ -8,15 +8,16 @@ import 'card.dart';
     * The pile of cards that are skipped and let back in after the stock is gone
 */
 class WastePile extends PositionComponent with HasGameReference<Solitaire> implements Pile {
+  //Tap and drag cards ok
   @override
-  bool canMoveCard(Card card) => _cards.isNotEmpty && card == _cards.last;
+  bool canMoveCard(Card card, MoveMethod method) => _cards.isNotEmpty && card == _cards.last;
 
   @override
   bool canAcceptCard(Card card) => false;
 
   @override
-  void removeCard(Card card) {
-    assert(canMoveCard(card));
+  void removeCard(Card card, MoveMethod method) {
+    assert(canMoveCard(card, method));
     _cards.removeLast();
     _fanOutTopCards();
   }//end of removeCard
@@ -28,7 +29,25 @@ class WastePile extends PositionComponent with HasGameReference<Solitaire> imple
   }//end of returnCard
 
   @override
+  void acquireCard(Card card) {
+    assert(card.isFaceUp);
+    card.pile = this;
+    card.position = position;
+    card.priority = _cards.length;
+    _cards.add(card);
+    _fanOutTopCards();
+  }//end of acquireCard
+
+  /*
+  @override
   bool get debugMode => true; //turned on debug mode to view
+  */
+
+  //constructor
+  WastePile({super.position}) : super(size: Solitaire.cardSize);
+
+  final List<Card> _cards = []; //cards in the waste pile
+  final Vector2 _fanOffset = Vector2(Solitaire.cardWidth * 0.2, 0); //determines shift between cards
 
   void _fanOutTopCards() {
     if (game.solitaireDraw == 1) {   // No fan-out in Klondike Draw 1.
@@ -46,21 +65,6 @@ class WastePile extends PositionComponent with HasGameReference<Solitaire> imple
       _cards[n - 1].position.addScaled(_fanOffset, 2);
     }//end of else if
   }//end of _fanOutTopCards
-
-  //constructor
-  WastePile({super.position}) : super(size: Solitaire.cardSize);
-
-  final List<Card> _cards = []; //cards in the waste pile
-  final Vector2 _fanOffset = Vector2(Solitaire.cardWidth * 0.2, 0); //determines shift between cards
-
-  //add a card in
-  void acquireCard(Card card) {
-    assert(card.isFaceUp);
-    card.position = position;
-    card.priority = _cards.length;
-    card.pile = this;
-    _cards.add(card);
-  }//end of acquireCard
 
   //empty pile so cards can be played again
   List<Card> removeAllCards() {

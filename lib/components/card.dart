@@ -6,34 +6,37 @@ import 'package:flame/events.dart';
 import 'package:flutter/animation.dart';
 import 'package:solitaire/Solitaire.dart';
 import '../rank.dart';
+import '../solitaire_world.dart';
 import '../suit.dart';
 import 'FoundationPile.dart';
 import 'Pile.dart';
 import 'StockPile.dart';
 import 'TableauPile.dart';
 
-class Card extends PositionComponent with DragCallbacks, TapCallbacks, HasWorldReference<Solitaire>{
+class Card extends PositionComponent with DragCallbacks, TapCallbacks, HasWorldReference<SolitaireWorld>{
   /*
     * Constructor
     * takes integer rank and suit
     * card facing down at first
   */
-  Card(int intRank, int intSuit)
+  Card(int intRank, int intSuit, {this.isBaseCard = false})
       : rank = Rank.fromInt(intRank),
         suit = Suit.fromInt(intSuit),
-        _faceUp = false,
-        super(size: Solitaire.cardSize);
+        super(
+        size: Solitaire.cardSize,
+      );
 
   //card details
   final Rank rank;
   final Suit suit;
   Pile? pile;
-  // A Base Card is rendered in outline only and is NOT playable. It can be
-  // added to the base of a Pile (e.g. the Stock Pile) to allow it to handle
-  // taps and short drags (on an empty Pile) with the same behavior and
-  // tolerances as for regular cards (see KlondikeGame.dragTolerance) and using
-  // the same event-handling code, but with different handleTapUp() methods.
+  //A Base Card is rendered in outline only and is NOT playable. It can be
+  //added to the base of a Pile (e.g. the Stock Pile) to allow it to handle
+  //taps and short drags (on an empty Pile) with the same behavior and
+  //tolerances as for regular cards (see KlondikeGame.dragTolerance) and using
+  //the same event-handling code, but with different handleTapUp() methods.
   final bool isBaseCard;
+  //checking various conditions of the card
   bool _faceUp = false;
   bool _isAnimatedFlip = false;
   bool _isFaceUpView = false;
@@ -51,11 +54,11 @@ class Card extends PositionComponent with DragCallbacks, TapCallbacks, HasWorldR
   //creates a board the game rests on
   @override
   void render(Canvas canvas) {
-    if (isBaseCard) {
+    if(isBaseCard) {
       _renderBaseCard(canvas);
       return;
     }//end of if
-    if (_isFaceUpView) {
+    if(_isFaceUpView) {
       _renderFront(canvas);
     }//end of if
     else {
@@ -134,7 +137,7 @@ class Card extends PositionComponent with DragCallbacks, TapCallbacks, HasWorldR
     _drawSprite(canvas, suitSprite, 0.1, 0.18, scale: 0.5);
     _drawSprite(canvas, suitSprite, 0.1, 0.18, scale: 0.5, rotate: true);
 
-    switch (rank.value) {
+    switch(rank.value) {
       case 1:
         _drawSprite(canvas, suitSprite, 0.5, 0.5, scale: 2.5);
       case 2:
@@ -217,7 +220,7 @@ class Card extends PositionComponent with DragCallbacks, TapCallbacks, HasWorldR
         double scale = 1,
         bool rotate = false,
       }) {//end of relativeY
-    if (rotate) {
+    if(rotate) {
       canvas.save();
       canvas.translate(size.x / 2, size.y / 2);
       canvas.rotate(pi);
@@ -229,7 +232,7 @@ class Card extends PositionComponent with DragCallbacks, TapCallbacks, HasWorldR
       anchor: Anchor.center,
       size: sprite.srcSize.scaled(scale),
     );
-    if (rotate) {
+    if(rotate) {
       canvas.restore();
     }//end of if
   }//end of _drawSprite
@@ -358,23 +361,24 @@ class Card extends PositionComponent with DragCallbacks, TapCallbacks, HasWorldR
       Vector2 to, {
         double speed = 10.0,
         double start = 0.0,
+        int startPriority = 100,
         Curve curve = Curves.easeOutQuad,
         VoidCallback? onComplete,
-      }) {//end of Vector2
+      }) {
     assert(speed > 0.0, 'Speed must be > 0 widths per second');
     final dt = (to - position).length / (speed * size.x);
-    assert(dt > 0.0, 'Distance to move must be > 0');
-    priority = 100;
+    assert(dt > 0, 'Distance to move must be > 0');
     add(
-      MoveToEffect(
+      CardMoveEffect(
         to,
         EffectController(duration: dt, startDelay: start, curve: curve),
+        transitPriority: startPriority,
         onComplete: () {
           onComplete?.call();
-        },//end of EffectController
+        },
       ),
     );
-  }//end of doMove
+  }//end of Vector2
 
   void doMoveAndFlip(
       Vector2 to, {
@@ -383,22 +387,22 @@ class Card extends PositionComponent with DragCallbacks, TapCallbacks, HasWorldR
         Curve curve = Curves.easeOutQuad,
         VoidCallback? whenDone,
       }) {//end of Vector2
-    assert(speed > 0.0, 'Speed must be > 0 widths per second');
-    final dt = (to - position).length / (speed * size.x);
-    assert(dt > 0, 'Distance to move must be > 0');
-    priority = 100;
-    add(
-      MoveToEffect(
-        to,
-        EffectController(duration: dt, startDelay: start, curve: curve),
-        onComplete: () {
-          turnFaceUp(
-            onComplete: whenDone,
-          );
-        },//end of onComplete
-      ),
-    );
-  }//end of doMoveAndFlip
+        assert(speed > 0.0, 'Speed must be > 0 widths per second');
+        final dt = (to - position).length / (speed * size.x);
+        assert(dt > 0, 'Distance to move must be > 0');
+        priority = 100;
+        add(
+          MoveToEffect(
+            to,
+            EffectController(duration: dt, startDelay: start, curve: curve),
+            onComplete: () {
+              turnFaceUp(
+                onComplete: whenDone,
+              );
+            },//end of onComplete
+          ),
+        );
+      }//end of doMoveAndFlip
 
   void turnFaceUp({
     double time = 0.3,
@@ -459,9 +463,9 @@ class Card extends PositionComponent with DragCallbacks, TapCallbacks, HasWorldR
   void handleTapUp() {
     // Can be called by onTapUp or after a very short (failed) drag-and-drop.
     // We need to be more user-friendly towards taps that include a short drag.
-    if (pile?.canMoveCard(this, MoveMethod.tap) ?? false) {
+    if(pile?.canMoveCard(this, MoveMethod.tap) ?? false) {
       final suitIndex = suit.value;
-      if (world.foundations[suitIndex].canAcceptCard(this)) {
+      if(world.foundations[suitIndex].canAcceptCard(this)) {
         pile!.removeCard(this, MoveMethod.tap);
         doMove(
           world.foundations[suitIndex].position,
@@ -490,7 +494,7 @@ class CardMoveEffect extends MoveToEffect {
 
   @override
   void onStart() {
-    super.onStart(); // Flame connects MoveToEffect to EffectController.
+    super.onStart(); //Flame connects MoveToEffect to EffectController.
     parent?.priority = transitPriority;
   }//end of onStart
 }//end of CardMoveEffect class

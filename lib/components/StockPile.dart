@@ -13,13 +13,13 @@ import 'WastePile.dart';
 */
 class StockPile extends PositionComponent with HasGameReference<Solitaire> implements Pile{
   @override
-  bool canMoveCard(Card card) => false;
+  bool canMoveCard(Card card, MoveMethod method) => false;
 
   @override
   bool canAcceptCard(Card card) => false;
 
   @override
-  void removeCard(Card card) => throw StateError('cannot remove cards from here');
+  void removeCard(Card card, MoveMethod method) => throw StateError('cannot remove cards from here');
 
   @override
   //Card cannot be removed but could have been dragged out of place.
@@ -34,8 +34,10 @@ class StockPile extends PositionComponent with HasGameReference<Solitaire> imple
     _cards.add(card);
   }//end of acquireCard
 
+  /*
   @override
   bool get debugMode => true; //turned on debug mode to view
+  */
 
   //constructor
   StockPile({super.position}) : super(size: Solitaire.cardSize);

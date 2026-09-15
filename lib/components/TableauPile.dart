@@ -12,6 +12,7 @@ class TableauPile extends PositionComponent implements Pile{
   @override
   bool canMoveCard(Card card, MoveMethod method) =>
       card.isFaceUp && (method == MoveMethod.drag || card == _cards.last);
+
   @override
   bool canAcceptCard(Card card) {
     if (_cards.isEmpty) {
@@ -52,7 +53,7 @@ class TableauPile extends PositionComponent implements Pile{
 
   // Which cards are currently placed onto this pile.
   final List<Card> _cards = [];
-  final Vector2 _fanOffset = Vector2(0, Solitaire.cardHeight * 0.05);
+  final Vector2 _fanOffset1 = Vector2(0, Solitaire.cardHeight * 0.05);
   final Vector2 _fanOffset2 = Vector2(0, Solitaire.cardHeight * 0.20);
 
   TableauPile({super.position}) : super(size: Solitaire.cardSize);
@@ -68,7 +69,7 @@ class TableauPile extends PositionComponent implements Pile{
 
   void layOutCards() {
     if(_cards.isEmpty) {
-      calculateHitArea(); // hrink hit-area when all cards have been removed.
+      calculateHitArea(); //shrink hit-area when all cards have been removed.
       return;
     }//end of if
     _cards[0].position.setFrom(position);
