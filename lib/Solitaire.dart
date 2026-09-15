@@ -80,6 +80,7 @@ class Solitaire extends FlameGame{
         for (var suit = 0; suit < 4; suit++)
           Card(rank, suit)
     ];
+    cards.shuffle();
     world.addAll(cards);
     cards.forEach(stock.acquireCard);
   }//end of onLoad

@@ -1,12 +1,14 @@
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import '../Solitaire.dart';
 import 'card.dart';
+import 'WastePile.dart';
 
 /*
     * PositionComponent is a component that has a position and size
     * The deck of cards that can be played
 */
-class StockPile extends PositionComponent{
+class StockPile extends PositionComponent with TapCallbacks{
   @override
   bool get debugMode => true; //turned on debug mode to view
 
@@ -24,4 +26,25 @@ class StockPile extends PositionComponent{
     card.priority = _cards.length;
     _cards.add(card);
   }//end of acquireCard
+
+  //first three cards are flipped and thrown away according to the rules
+  @override
+  void onTapUp(TapUpEvent event) {
+    final wastePile = parent!.firstChild<WastePile>()!;
+    if (_cards.isEmpty) {
+      wastePile.removeAllCards().reversed.forEach((card) {
+        card.flip();
+        acquireCard(card);
+      });
+    } //end of if
+    else {
+      for (var i = 0; i < 3; i++) {
+        if (_cards.isNotEmpty) {
+          final card = _cards.removeLast();
+          card.flip();
+          wastePile.acquireCard(card);
+        }//end of if
+      }//end of for loop
+    }//end of else
+  }//end of onTapUp
 }//end of Stock class
