@@ -10,7 +10,8 @@ import 'card.dart';
 */
 class FoundationPile extends PositionComponent implements Pile{
   @override
-  bool canMoveCard(Card card) => _cards.isNotEmpty && card == _cards.last;
+  bool canMoveCard(Card card, MoveMethod method) =>
+      _cards.isNotEmpty && card == _cards.last && method != MoveMethod.tap;
 
   @override
   bool canAcceptCard(Card card) {
@@ -21,8 +22,8 @@ class FoundationPile extends PositionComponent implements Pile{
   }//end of canAcceptCard
 
   @override
-  void removeCard(Card card) {
-    assert(canMoveCard(card));
+  void removeCard(Card card, MoveMethod method) {
+    assert(canMoveCard(card, method));
     _cards.removeLast();
   }//end of removeCard
 
@@ -33,23 +34,26 @@ class FoundationPile extends PositionComponent implements Pile{
   }//end of returnCard
 
   @override
-  bool get debugMode => true; //turned on debug mode to view
-  final Suit suit; //what kind of card is it
-  final List<Card> _cards = []; //to hold the cards
-
-  //constructor
-  FoundationPile(int intSuit, {super.position})
-      : suit = Suit.fromInt(intSuit),
-        super(size: Solitaire.cardSize);
-
-  //add card in
   void acquireCard(Card card) {
     assert(card.isFaceUp);
     card.position = position;
     card.priority = _cards.length;
     card.pile = this;
     _cards.add(card);
+    if (isFull) {
+      checkWin(); //Get SolitaireWorld to check all FoundationPiles.
+    }//end of if
   }//end of acquireCard
+  //more declarations
+  final VoidCallback checkWin; //short hand void function
+  final Suit suit;
+  final List<Card> _cards = [];
+  bool get isFull => _cards.length == 13;
+
+  //constructor
+  FoundationPile(int intSuit, this.checkWin, {super.position})
+      : suit = Suit.fromInt(intSuit),
+        super(size: Solitaire.cardSize);
 
   @override
   void render(Canvas canvas) {
