@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/flame.dart';
 
+import 'components/card.dart';
 import 'components/foundation.dart';
 import 'components/pile.dart';
 import 'components/stock.dart';
@@ -57,6 +60,19 @@ class Solitaire extends FlameGame{
     camera.viewfinder.visibleGameSize = Vector2(cardWidth*7 + cardGap*8, cardHeight+2 * cardGap);
     camera.viewfinder.position = Vector2(cardWidth*3.5 + cardGap*4, 0);
     camera.viewfinder.anchor = Anchor.topCenter;
+
+    //lays down 28 random cards facing up
+    final random = Random();
+    for (var i = 0; i < 7; i++) {
+      for (var j = 0; j < 4; j++) {
+        final card = Card(random.nextInt(13) + 1, random.nextInt(4))
+          ..position = Vector2(100 + i * 1150, 100 + j * 1500)
+          ..addToParent(world);
+        if (random.nextDouble() < 0.9) { // flip face up with 90% probability
+          card.flip();
+        }
+      }
+    }
   }//end of onLoad
 }//end of Solitaire
 
