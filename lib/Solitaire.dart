@@ -70,9 +70,18 @@ class Solitaire extends FlameGame{
           ..addToParent(world);
         if (random.nextDouble() < 0.9) { // flip face up with 90% probability
           card.flip();
-        }
-      }
-    }
+        }//end of if
+      }//end of inner for loop
+    }//end of outer for loop
+
+    //creating a deck
+    final cards = [
+      for (var rank = 1; rank <= 13; rank++)
+        for (var suit = 0; suit < 4; suit++)
+          Card(rank, suit)
+    ];
+    world.addAll(cards);
+    cards.forEach(stock.acquireCard);
   }//end of onLoad
 }//end of Solitaire
 
