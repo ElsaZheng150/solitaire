@@ -4,16 +4,20 @@ import 'card.dart';
 
 /*
     * PositionComponent is a component that has a position and size
+    * The deck of cards that can be played
 */
 class StockPile extends PositionComponent{
   @override
   bool get debugMode => true; //turned on debug mode to view
+
+  //constructor
   StockPile({super.position}) : super(size: Solitaire.cardSize);
 
   // Which cards are currently placed onto this pile. The first card in the
   // list is at the bottom, the last card is on top.
   final List<Card> _cards = [];
 
+  //add a card in
   void acquireCard(Card card) {
     assert(!card.isFaceUp);
     card.position = position;
