@@ -7,16 +7,17 @@ import 'card.dart';
     * PositionComponent is a component that has a position and size
     * The pile of cards that are skipped and let back in after the stock is gone
 */
-class WastePile extends PositionComponent implements Pile{
+class WastePile extends PositionComponent with HasGameReference<Solitaire> implements Pile {
+  //Tap and drag cards ok
   @override
-  bool canMoveCard(Card card) => _cards.isNotEmpty && card == _cards.last;
+  bool canMoveCard(Card card, MoveMethod method) => _cards.isNotEmpty && card == _cards.last;
 
   @override
   bool canAcceptCard(Card card) => false;
 
   @override
-  void removeCard(Card card) {
-    assert(canMoveCard(card));
+  void removeCard(Card card, MoveMethod method) {
+    assert(canMoveCard(card, method));
     _cards.removeLast();
     _fanOutTopCards();
   }//end of removeCard
@@ -28,7 +29,19 @@ class WastePile extends PositionComponent implements Pile{
   }//end of returnCard
 
   @override
+  void acquireCard(Card card) {
+    assert(card.isFaceUp);
+    card.pile = this;
+    card.position = position;
+    card.priority = _cards.length;
+    _cards.add(card);
+    _fanOutTopCards();
+  }//end of acquireCard
+
+  /*
+  @override
   bool get debugMode => true; //turned on debug mode to view
+  */
 
   //constructor
   WastePile({super.position}) : super(size: Solitaire.cardSize);
@@ -36,17 +49,10 @@ class WastePile extends PositionComponent implements Pile{
   final List<Card> _cards = []; //cards in the waste pile
   final Vector2 _fanOffset = Vector2(Solitaire.cardWidth * 0.2, 0); //determines shift between cards
 
-  //add a card in
-  void acquireCard(Card card) {
-    assert(card.isFaceUp);
-    card.position = position;
-    card.priority = _cards.length;
-    card.pile = this;
-    _cards.add(card);
-  }//end of acquireCard
-
-  //must flip three cards at a time
   void _fanOutTopCards() {
+    if (game.solitaireDraw == 1) {   // No fan-out in Klondike Draw 1.
+      return;
+    }//end of if
     final n = _cards.length;
     for (var i = 0; i < n; i++) {
       _cards[i].position = position;
